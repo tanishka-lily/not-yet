@@ -1,0 +1,247 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Check Gemini access",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"run",
+				"check:gemini"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Lint scaffold",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"run",
+				"lint"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Build scaffold",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"run",
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Inspect build worktree",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Stage slice 1 files",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"add",
+				"--",
+				".gitignore",
+				".env.example",
+				"README.md",
+				"app/globals.css",
+				"app/layout.js",
+				"app/page.js",
+				"eslint.config.mjs",
+				"package.json",
+				"package-lock.json",
+				"scripts/check-gemini.js"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Review staged slice 1",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--cached",
+				"--check"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Show staged slice 1 diff",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--cached",
+				"--",
+				".gitignore",
+				".env.example",
+				"README.md",
+				"app/globals.css",
+				"app/layout.js",
+				"app/page.js",
+				"eslint.config.mjs",
+				"package.json",
+				"scripts/check-gemini.js"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Show staged slice 1 stat",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--cached",
+				"--stat"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Show staged source diff",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"-c",
+				"core.pager=cat",
+				"diff",
+				"--cached",
+				"--",
+				".gitignore",
+				".env.example",
+				"README.md",
+				"app/globals.css",
+				"app/layout.js",
+				"app/page.js",
+				"eslint.config.mjs",
+				"package.json",
+				"scripts/check-gemini.js"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Commit slice 1",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"commit",
+				"-m",
+				"Add project scaffold and Gemini access check"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check staged diff cleanliness",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--cached",
+				"--check"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Set repository author name",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"config",
+				"--local",
+				"user.name",
+				"tanishka-lily"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Set repository author email",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"config",
+				"--local",
+				"user.email",
+				"293070117+tanishka-lily@users.noreply.github.com"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Verify local author identity",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"config",
+				"--local",
+				"--get-regexp",
+				"^user\\."
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "List staged slice 1 paths",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--cached",
+				"--name-only"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Final staged diff check",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--cached",
+				"--check"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check worktree before commit",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Start local app",
+			"type": "shell",
+			"command": "npm.cmd",
+			"args": [
+				"run",
+				"dev"
+			],
+			"isBackground": true,
+			"problemMatcher": []
+		}
+	]
+}
