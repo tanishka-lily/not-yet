@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import StudyChat from "./StudyChat.js";
 import Shelf from "./Shelf.js";
+   import ThemeBar from "./ThemeBar.js";
 import { loadShelf, saveShelf, loadChat, saveChat, loadLayout, saveLayout } from "../lib/storage.js";
 
 const DEFAULT_SHELF_WIDTH = 320;
@@ -401,12 +402,13 @@ export default function ReadingCompanion() {
 
   return (
     <main className="app-shell">
-      <header className="masthead">
-        <div>
-          <p className="eyebrow">A quiet place to think</p>
-          <h1>Not Yet</h1>
-        </div>
-      </header>
+               <header className="masthead">
+           <div>
+             <p className="eyebrow">A quiet place to think</p>
+             <h1>Not Yet</h1>
+           </div>
+           <ThemeBar busy={busyAction !== ""} lastText={messages[messages.length - 1]?.text ?? ""} />
+         </header>
 
       <div
         className="workspace"
