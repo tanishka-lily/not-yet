@@ -13,6 +13,27 @@ export async function POST(request) {
   return studyText(request);
 }
 
+function failureResponse(error, fallbackMessage) {
+  const status = Number(error?.status);
+  console.error("Gemini error:", error?.status, String(error?.message).slice(0, 200));
+
+  if (status === 401 || status === 403) {
+    return NextResponse.json(
+      { error: "Gemini couldn't use this key. Check the local key and model setting, then try again." },
+      { status: 502 },
+    );
+  }
+
+  if (status === 429) {
+    return NextResponse.json(
+      { error: "I've reached my limit for a moment. Give it a minute, then try again." },
+      { status: 429 },
+    );
+  }
+
+  return NextResponse.json({ error: fallbackMessage }, { status: 503 });
+}
+
 async function readSection(request) {
   let formData;
 
@@ -51,29 +72,9 @@ async function readSection(request) {
     const data = Buffer.from(await photo.arrayBuffer()).toString("base64");
     const text = await readPhoto({ data, mimeType: photo.type });
 
-    if (!text) {
-      return NextResponse.json(
-        { error: "I couldn't read that page just now. Try again, or choose a clearer photo." },
-        { status: 502 },
-      );
-    }
-
     return NextResponse.json({ text });
   } catch (error) {
-    const status = Number(error?.status);
-       console.error("Gemini error:", error?.status, String(error?.message).slice(0, 200));
-
-    if (status === 401 || status === 403) {
-      return NextResponse.json(
-        { error: "Gemini couldn't use this key. Check the local key and model setting, then try again." },
-        { status: 502 },
-      );
-    }
-
-    return NextResponse.json(
-      { error: "I couldn't read that page just now. Try again, or choose a clearer photo." },
-      { status: 503 },
-    );
+    return failureResponse(error, "I couldn't read that page just now. Try again, or choose a clearer photo.");
   }
 }
 
@@ -99,28 +100,8 @@ async function studyText(request) {
   try {
     const text = await respondToStudy({ action, sections, messages, nudgeCount });
 
-    if (!text) {
-      return NextResponse.json(
-        { error: "I couldn't make a useful reply just now. Try again or keep exploring the saved text." },
-        { status: 502 },
-      );
-    }
-
     return NextResponse.json({ text });
   } catch (error) {
-    const status = Number(error?.status);
-       console.error("Gemini error:", error?.status, String(error?.message).slice(0, 200));
-
-    if (status === 401 || status === 403) {
-      return NextResponse.json(
-        { error: "Gemini couldn't use this key. Check the local key and model setting, then try again." },
-        { status: 502 },
-      );
-    }
-
-    return NextResponse.json(
-      { error: "I couldn't make a useful reply just now. Please try again." },
-      { status: 503 },
-    );
+    return failureResponse(error, "I couldn't make a useful reply just now. Please try again.");
   }
 }
