@@ -1,9 +1,14 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
+   import MathText from "./MathText.js";
 
 const NEW_BOOK = "new";
 
 export default function StudyChat({
   books,
+  selectedBook,
   selectedBookId,
   newBookTitle,
   messages,
@@ -27,9 +32,27 @@ export default function StudyChat({
   onDraftMessageChange,
   onSendMessage,
   onNudge,
+  onSaveStuckPoint,
 }) {
+  const [stuckOpen, setStuckOpen] = useState(false);
+  const [stuckNote, setStuckNote] = useState("");
+  const [stuckSectionId, setStuckSectionId] = useState("");
+
   const hasBook = books.some((book) => book.id === selectedBookId);
   const canCreateBook = selectedBookId === NEW_BOOK && newBookTitle.trim().length > 0;
+  const sections = selectedBook?.sections ?? [];
+  const activeSectionId = stuckSectionId || sections[sections.length - 1]?.id || "";
+
+  function saveStuck() {
+    if (!stuckNote.trim() || !activeSectionId) {
+      return;
+    }
+
+    onSaveStuckPoint(activeSectionId, stuckNote);
+    setStuckNote("");
+    setStuckSectionId("");
+    setStuckOpen(false);
+  }
 
   return (
     <section className="study-chat" aria-labelledby="study-chat-heading">
@@ -77,7 +100,7 @@ export default function StudyChat({
         {messages.map((message) => (
           <article className={`chat-message ${message.role}`} key={message.id}>
             <p className="chat-role">{message.role === "assistant" ? "Study partner" : "You"}</p>
-            <p>{message.text}</p>
+               <MathText text={message.text} />
           </article>
         ))}
         {busyAction && <p className="status-line" role="status">{busyAction === "read" ? "Reading the page..." : "Thinking with your book..."}</p>}
@@ -106,7 +129,7 @@ export default function StudyChat({
             <>
               <p className="eyebrow">Check the reading</p>
               {transcription.includes("[unclear]") && (
-                <p className="notice" role="status">I’m not sure about the parts marked [unclear]. Please check them against the screenshot.</p>
+                <p className="notice" role="status">I&rsquo;m not sure about the parts marked [unclear]. Please check them against the screenshot.</p>
               )}
               <label className="field">
                 Text read from the screenshot
@@ -127,6 +150,36 @@ export default function StudyChat({
         </section>
       )}
 
+      {stuckOpen && (
+        <section className="pasted-section" aria-label="Where you got stuck">
+          <p className="eyebrow">Where did you get stuck?</p>
+          <label className="field">
+            In your own words
+            <textarea
+              onChange={(event) => setStuckNote(event.target.value)}
+              placeholder="For example: I didn't see why the kernel is a subgroup"
+              value={stuckNote}
+            />
+          </label>
+          {sections.length > 1 && (
+            <label className="field">
+              Which page or section?
+              <select onChange={(event) => setStuckSectionId(event.target.value)} value={activeSectionId}>
+                {sections.map((section, index) => (
+                  <option key={section.id} value={section.id}>
+                    {section.pageLabel || `Section ${index + 1}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <div className="button-row">
+            <button disabled={!stuckNote.trim()} onClick={saveStuck} type="button">Save this</button>
+            <button className="secondary-button" onClick={() => setStuckOpen(false)} type="button">Cancel</button>
+          </div>
+        </section>
+      )}
+
       {error && <p className="notice" role="alert">{error}</p>}
 
       <form className="chat-composer" onSubmit={onSendMessage}>
@@ -143,6 +196,7 @@ export default function StudyChat({
         <div className="button-row">
           <button disabled={!hasBook || !draftMessage.trim() || busyAction !== ""} type="submit">Send</button>
           <button className="secondary-button" disabled={!hasBook || !messages.length || busyAction !== ""} onClick={onNudge} type="button">Nudge</button>
+          <button className="secondary-button" disabled={!hasBook || sections.length === 0 || busyAction !== ""} onClick={() => setStuckOpen(true)} type="button">I&rsquo;m stuck</button>
         </div>
       </form>
       {nudgeCount >= 3 && <p className="muted nudge-note">We can talk it through, or you can save where you got stuck.</p>}

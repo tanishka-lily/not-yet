@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import StudyChat from "./StudyChat.js";
 import Shelf from "./Shelf.js";
-import { loadShelf, saveShelf } from "../lib/storage.js";
+import { loadShelf, saveShelf, loadChat, saveChat } from "../lib/storage.js";
 
 function createId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -31,6 +31,7 @@ export default function ReadingCompanion() {
       setStorageAvailable(result.available);
       if (result.books.length > 0) {
         setSelectedBookId(result.books[0].id);
+        setMessages(loadChat(result.books[0].id));
       }
     }, 0);
 
@@ -43,6 +44,12 @@ export default function ReadingCompanion() {
     }
   }, [pendingImageUrl]);
 
+  useEffect(() => {
+    if (selectedBookId !== "new") {
+      saveChat(selectedBookId, messages);
+    }
+  }, [messages, selectedBookId]);
+
   const selectedBook = books.find((book) => book.id === selectedBookId);
 
   function updateShelf(nextBooks) {
@@ -53,13 +60,112 @@ export default function ReadingCompanion() {
     }
   }
 
+  function deleteSection(bookId, sectionId) {
+    if (!window.confirm("Remove this section from your shelf? This can't be undone.")) {
+      return;
+    }
+
+    const nextBooks = books.map((book) => (
+      book.id === bookId
+        ? { ...book, sections: book.sections.filter((section) => section.id !== sectionId) }
+        : book
+    ));
+
+    updateShelf(nextBooks);
+  }
+
+    function saveStickingPoint(sectionId, note) {
+    const cleanNote = note.trim();
+
+    if (!selectedBook || !sectionId || !cleanNote) {
+      return;
+    }
+
+    const point = {
+      id: createId(),
+      note: cleanNote,
+      status: "active",
+      savedAt: new Date().toISOString(),
+    };
+    const nextBooks = books.map((book) => (
+      book.id === selectedBook.id
+        ? {
+          ...book,
+          sections: book.sections.map((section) => (
+            section.id === sectionId
+              ? { ...section, stickingPoints: [...(section.stickingPoints ?? []), point] }
+              : section
+          )),
+        }
+        : book
+    ));
+
+    updateShelf(nextBooks);
+    addMessage("assistant", "Saved. That's a good place to come back to, and there's nothing to fix right now.");
+  }
+
+    function setPointStatus(sectionId, pointId, status) {
+    if (!selectedBook) {
+      return;
+    }
+
+    const nextBooks = books.map((book) => (
+      book.id === selectedBook.id
+        ? {
+          ...book,
+          sections: book.sections.map((section) => (
+            section.id === sectionId
+              ? {
+                ...section,
+                stickingPoints: (section.stickingPoints ?? []).map((point) => (
+                  point.id === pointId ? { ...point, status } : point
+                )),
+              }
+              : section
+          )),
+        }
+        : book
+    ));
+
+    updateShelf(nextBooks);
+
+    if (status === "understood") {
+      addMessage("assistant", "Nice, that one's yours now. It's tucked away under Understood if you ever want it back.");
+    }
+  }
+
+  async function revisitStickingPoint(sectionId, pointId) {
+    const section = selectedBook?.sections.find((item) => item.id === sectionId);
+    const point = section?.stickingPoints?.find((item) => item.id === pointId);
+
+    if (!section || !point) {
+      return;
+    }
+
+    const prompt = `I want to come back to a place where I got stuck. I wrote: "${point.note}". Please ask me one fresh question about that point. Do not repeat an earlier question and do not give the answer.`;
+
+    setError("");
+    setNudgeCount(0);
+    setBusyAction("chat");
+    addMessage("assistant", `Coming back to what you wrote: "${point.note}"`);
+
+    try {
+      const reply = await requestStudy("chat", [...messages, { role: "user", text: prompt }], [section], 0);
+      addMessage("assistant", reply);
+    } catch (revisitError) {
+      setError(revisitError.message || "I couldn't make a question just now. Try again in a moment.");
+    } finally {
+      setBusyAction("");
+    }
+  }
+
   function addMessage(role, text) {
     setMessages((current) => [...current, { id: createId(), role, text }]);
   }
 
   function selectBook(bookId) {
     setSelectedBookId(bookId);
-    setMessages([]);
+    setMessages(bookId === "new" ? [] : loadChat(bookId));
     setNudgeCount(0);
     setError("");
     clearPastedImage();
@@ -254,6 +360,8 @@ export default function ReadingCompanion() {
       <div className="workspace">
         <StudyChat
           books={books}
+                    selectedBook={selectedBook}
+          onSaveStuckPoint={saveStickingPoint}
           busyAction={busyAction}
           draftMessage={draftMessage}
           error={error}
@@ -279,7 +387,7 @@ export default function ReadingCompanion() {
           transcription={transcription}
         />
         <aside className="shelf-panel">
-          <Shelf books={books} onOpenBook={selectBook} selectedBookId={selectedBookId} />
+                    <Shelf books={books} onDeleteSection={deleteSection} onOpenBook={selectBook} onRevisit={revisitStickingPoint} onSetPointStatus={setPointStatus} selectedBookId={selectedBookId} />
         </aside>
       </div>
     </main>

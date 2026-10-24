@@ -1,4 +1,11 @@
-export default function Shelf({ books, selectedBookId, onOpenBook }) {
+export default function Shelf({
+  books,
+  selectedBookId,
+  onOpenBook,
+  onDeleteSection,
+  onRevisit,
+  onSetPointStatus,
+}) {
   const selectedBook = books.find((book) => book.id === selectedBookId);
 
   return (
@@ -7,7 +14,7 @@ export default function Shelf({ books, selectedBookId, onOpenBook }) {
       <h2 className="section-heading" id="shelf-heading">Your shelf</h2>
 
       {books.length === 0 ? (
-        <p className="empty-shelf">Your shelf is empty. Add a page when you’re ready.</p>
+        <p className="empty-shelf">Your shelf is empty. Add a page when you&rsquo;re ready.</p>
       ) : (
         <div className="book-spines" aria-label="Books on your shelf">
           {books.map((book) => (
@@ -31,12 +38,65 @@ export default function Shelf({ books, selectedBookId, onOpenBook }) {
           {selectedBook.sections.length === 0 ? (
             <p className="muted">No pages added yet.</p>
           ) : (
-            selectedBook.sections.map((section) => (
-              <article className="section-item" key={section.id}>
-                <p className="eyebrow">{section.pageLabel || "Section"}</p>
-                <p className="passage-excerpt">{section.passageText}</p>
-              </article>
-            ))
+            selectedBook.sections.map((section) => {
+              const points = section.stickingPoints ?? [];
+              const active = points.filter((point) => point.status !== "understood");
+              const understood = points.filter((point) => point.status === "understood");
+
+              return (
+                <article className="section-item" key={section.id}>
+                  <p className="eyebrow">{section.pageLabel || "Section"}</p>
+                  <p className="passage-excerpt">{section.passageText}</p>
+
+                  {active.length > 0 && (
+                    <div>
+                      <p className="eyebrow">Where you got stuck</p>
+                      {active.map((point) => (
+                        <div key={point.id}>
+                          <p className="muted">&ldquo;{point.note}&rdquo;</p>
+                          <div className="button-row">
+                            <button onClick={() => onRevisit(section.id, point.id)} type="button">Revisit</button>
+                            <button
+                              className="secondary-button"
+                              onClick={() => onSetPointStatus(section.id, point.id, "understood")}
+                              type="button"
+                            >
+                              Got it
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {understood.length > 0 && (
+                    <div>
+                      <p className="eyebrow">Understood</p>
+                      {understood.map((point) => (
+                        <div key={point.id}>
+                          <p className="muted">&ldquo;{point.note}&rdquo;</p>
+                          <button
+                            className="secondary-button"
+                            onClick={() => onSetPointStatus(section.id, point.id, "active")}
+                            type="button"
+                          >
+                            Bring this back
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <button
+                    className="secondary-button"
+                    onClick={() => onDeleteSection(selectedBook.id, section.id)}
+                    type="button"
+                  >
+                    Remove this section
+                  </button>
+                </article>
+              );
+            })
           )}
         </div>
       )}

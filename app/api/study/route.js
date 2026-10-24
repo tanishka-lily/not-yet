@@ -61,6 +61,7 @@ async function readSection(request) {
     return NextResponse.json({ text });
   } catch (error) {
     const status = Number(error?.status);
+       console.error("Gemini error:", error?.status, String(error?.message).slice(0, 200));
 
     if (status === 401 || status === 403) {
       return NextResponse.json(
@@ -108,6 +109,7 @@ async function studyText(request) {
     return NextResponse.json({ text });
   } catch (error) {
     const status = Number(error?.status);
+       console.error("Gemini error:", error?.status, String(error?.message).slice(0, 200));
 
     if (status === 401 || status === 403) {
       return NextResponse.json(
