@@ -1,12 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import StudyChat from "./StudyChat.js";
 import Shelf from "./Shelf.js";
-import { loadShelf, saveShelf, loadChat, saveChat } from "../lib/storage.js";
+import { loadShelf, saveShelf, loadChat, saveChat, loadLayout, saveLayout } from "../lib/storage.js";
+
+const DEFAULT_SHELF_WIDTH = 320;
+const MIN_SHELF_WIDTH = 200;
+const MAX_SHELF_WIDTH = 640;
 
 function createId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function clampWidth(value) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return DEFAULT_SHELF_WIDTH;
+  }
+
+  return Math.min(MAX_SHELF_WIDTH, Math.max(MIN_SHELF_WIDTH, Math.round(number)));
 }
 
 export default function ReadingCompanion() {
@@ -23,6 +37,10 @@ export default function ReadingCompanion() {
   const [nudgeCount, setNudgeCount] = useState(0);
   const [busyAction, setBusyAction] = useState("");
   const [error, setError] = useState("");
+  const [shelfWidth, setShelfWidth] = useState(DEFAULT_SHELF_WIDTH);
+  const [resizing, setResizing] = useState(false);
+  const [hovering, setHovering] = useState(false);
+  const workspaceRef = useRef(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -33,6 +51,7 @@ export default function ReadingCompanion() {
         setSelectedBookId(result.books[0].id);
         setMessages(loadChat(result.books[0].id));
       }
+      setShelfWidth(clampWidth(loadLayout({ shelfWidth: DEFAULT_SHELF_WIDTH }).shelfWidth));
     }, 0);
 
     return () => window.clearTimeout(timer);
@@ -51,6 +70,36 @@ export default function ReadingCompanion() {
   }, [messages, selectedBookId]);
 
   const selectedBook = books.find((book) => book.id === selectedBookId);
+
+  function startResize(event) {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setResizing(true);
+  }
+
+  function moveResize(event) {
+    if (!resizing || !workspaceRef.current) {
+      return;
+    }
+
+    const rect = workspaceRef.current.getBoundingClientRect();
+    setShelfWidth(clampWidth(rect.right - event.clientX - 10));
+  }
+
+  function endResize(event) {
+    if (!resizing) {
+      return;
+    }
+
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    setResizing(false);
+    saveLayout({ shelfWidth });
+  }
+
+  function resetLayout() {
+    setShelfWidth(DEFAULT_SHELF_WIDTH);
+    saveLayout({ shelfWidth: DEFAULT_SHELF_WIDTH });
+  }
 
   function updateShelf(nextBooks) {
     setBooks(nextBooks);
@@ -74,7 +123,7 @@ export default function ReadingCompanion() {
     updateShelf(nextBooks);
   }
 
-    function saveStickingPoint(sectionId, note) {
+  function saveStickingPoint(sectionId, note) {
     const cleanNote = note.trim();
 
     if (!selectedBook || !sectionId || !cleanNote) {
@@ -104,7 +153,7 @@ export default function ReadingCompanion() {
     addMessage("assistant", "Saved. That's a good place to come back to, and there's nothing to fix right now.");
   }
 
-    function setPointStatus(sectionId, pointId, status) {
+  function setPointStatus(sectionId, pointId, status) {
     if (!selectedBook) {
       return;
     }
@@ -348,24 +397,34 @@ export default function ReadingCompanion() {
     }
   }
 
+  const handleLit = resizing || hovering;
+
   return (
     <main className="app-shell">
       <header className="masthead">
         <div>
           <p className="eyebrow">A quiet place to think</p>
-          <h1>Technical Reading Companion</h1>
+          <h1>Not Yet</h1>
         </div>
       </header>
 
-      <div className="workspace">
+      <div
+        className="workspace"
+        ref={workspaceRef}
+        style={{
+          "--shelf-width": `${shelfWidth}px`,
+          "--chat-height": "65vh",
+          display: "grid",
+          gridTemplateColumns: `minmax(0, 1fr) ${shelfWidth}px`,
+        }}
+      >
         <StudyChat
           books={books}
-                    selectedBook={selectedBook}
-          onSaveStuckPoint={saveStickingPoint}
           busyAction={busyAction}
           draftMessage={draftMessage}
           error={error}
           messages={messages}
+          selectedBook={selectedBook}
           newBookTitle={newBookTitle}
           nudgeCount={nudgeCount}
           onBookChange={selectBook}
@@ -376,6 +435,7 @@ export default function ReadingCompanion() {
           onNudge={requestNudge}
           onPageLabelChange={setPageLabel}
           onPaste={handlePaste}
+          onSaveStuckPoint={saveStickingPoint}
           onTranscriptionChange={setTranscription}
           onSaveSection={saveTextSection}
           onSendMessage={sendMessage}
@@ -386,8 +446,49 @@ export default function ReadingCompanion() {
           storageAvailable={storageAvailable}
           transcription={transcription}
         />
-        <aside className="shelf-panel">
-                    <Shelf books={books} onDeleteSection={deleteSection} onOpenBook={selectBook} onRevisit={revisitStickingPoint} onSetPointStatus={setPointStatus} selectedBookId={selectedBookId} />
+        <aside className="shelf-panel" style={{ position: "relative", minWidth: 0 }}>
+          <div
+            aria-label="Drag to resize the shelf. Double-click to reset."
+            onDoubleClick={resetLayout}
+            onPointerCancel={endResize}
+            onPointerDown={startResize}
+            onPointerEnter={() => setHovering(true)}
+            onPointerLeave={() => setHovering(false)}
+            onPointerMove={moveResize}
+            onPointerUp={endResize}
+            role="separator"
+            style={{
+              position: "absolute",
+              left: -16,
+              top: 0,
+              bottom: 0,
+              width: 12,
+              cursor: "col-resize",
+              touchAction: "none",
+              display: "flex",
+              justifyContent: "center",
+              zIndex: 5,
+            }}
+            title="Drag to resize. Double-click to reset."
+          >
+            <div
+              style={{
+                width: 3,
+                height: "100%",
+                borderRadius: 2,
+                background: handleLit ? "#3b82f6" : "rgba(59, 130, 246, 0.25)",
+                transition: "background 0.15s",
+              }}
+            />
+          </div>
+          <Shelf
+            books={books}
+            onDeleteSection={deleteSection}
+            onOpenBook={selectBook}
+            onRevisit={revisitStickingPoint}
+            onSetPointStatus={setPointStatus}
+            selectedBookId={selectedBookId}
+          />
         </aside>
       </div>
     </main>

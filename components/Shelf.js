@@ -38,14 +38,19 @@ export default function Shelf({
           {selectedBook.sections.length === 0 ? (
             <p className="muted">No pages added yet.</p>
           ) : (
-            selectedBook.sections.map((section) => {
+            selectedBook.sections.map((section, index) => {
               const points = section.stickingPoints ?? [];
               const active = points.filter((point) => point.status !== "understood");
               const understood = points.filter((point) => point.status === "understood");
+              const label = section.pageLabel || `Section ${index + 1}`;
 
               return (
-                <article className="section-item" key={section.id}>
-                  <p className="eyebrow">{section.pageLabel || "Section"}</p>
+                <details className="section-item" key={section.id}>
+                  <summary>
+                    {label}
+                    {active.length > 0 ? ` · ${active.length} stuck` : ""}
+                  </summary>
+
                   <p className="passage-excerpt">{section.passageText}</p>
 
                   {active.length > 0 && (
@@ -94,7 +99,7 @@ export default function Shelf({
                   >
                     Remove this section
                   </button>
-                </article>
+                </details>
               );
             })
           )}
