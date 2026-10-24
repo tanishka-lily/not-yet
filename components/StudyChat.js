@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-   import MathText from "./MathText.js";
+import MathText from "./MathText.js";
 
 const NEW_BOOK = "new";
+const CHAT_HEIGHT_KEY = "technical-reading-companion:chat-height:v1";
+const MIN_CHAT_HEIGHT = 160;
 
 export default function StudyChat({
   books,
@@ -37,6 +39,71 @@ export default function StudyChat({
   const [stuckOpen, setStuckOpen] = useState(false);
   const [stuckNote, setStuckNote] = useState("");
   const [stuckSectionId, setStuckSectionId] = useState("");
+  const [chatHeight, setChatHeight] = useState(null);
+  const [handleLit, setHandleLit] = useState(false);
+  const logRef = useRef(null);
+  const dragRef = useRef(null);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = Number(window.localStorage.getItem(CHAT_HEIGHT_KEY));
+
+        if (Number.isFinite(stored) && stored >= MIN_CHAT_HEIGHT) {
+          setChatHeight(stored);
+        }
+      } catch {
+        // Storage is unavailable, so the default height is used.
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  function startChatResize(event) {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragRef.current = {
+      startY: event.clientY,
+      startHeight: logRef.current?.offsetHeight ?? 400,
+    };
+  }
+
+  function moveChatResize(event) {
+    if (!dragRef.current) {
+      return;
+    }
+
+    const maxHeight = Math.round(window.innerHeight * 0.85);
+    const next = dragRef.current.startHeight + event.clientY - dragRef.current.startY;
+
+    setChatHeight(Math.min(maxHeight, Math.max(MIN_CHAT_HEIGHT, Math.round(next))));
+  }
+
+  function endChatResize(event) {
+    if (!dragRef.current) {
+      return;
+    }
+
+    dragRef.current = null;
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+
+    try {
+      window.localStorage.setItem(CHAT_HEIGHT_KEY, String(logRef.current?.offsetHeight ?? ""));
+    } catch {
+      // Storage is unavailable, so the height is not remembered.
+    }
+  }
+
+  function resetChatHeight() {
+    setChatHeight(null);
+
+    try {
+      window.localStorage.removeItem(CHAT_HEIGHT_KEY);
+    } catch {
+      // Nothing to clear.
+    }
+  }
 
   const hasBook = books.some((book) => book.id === selectedBookId);
   const canCreateBook = selectedBookId === NEW_BOOK && newBookTitle.trim().length > 0;
@@ -89,7 +156,13 @@ export default function StudyChat({
         </p>
       )}
 
-      <div className="chat-log" aria-live="polite" aria-label="Study conversation">
+      <div
+        aria-label="Study conversation"
+        aria-live="polite"
+        className="chat-log"
+        ref={logRef}
+        style={chatHeight ? { height: `${chatHeight}px`, resize: "none" } : { resize: "none" }}
+      >
         {messages.length === 0 && (
           <p className="empty-chat">
             {hasBook
@@ -100,10 +173,37 @@ export default function StudyChat({
         {messages.map((message) => (
           <article className={`chat-message ${message.role}`} key={message.id}>
             <p className="chat-role">{message.role === "assistant" ? "Study partner" : "You"}</p>
-               <MathText text={message.text} />
+            <MathText text={message.text} />
           </article>
         ))}
         {busyAction && <p className="status-line" role="status">{busyAction === "read" ? "Reading the page..." : "Thinking with your book..."}</p>}
+      </div>
+
+      <div
+        aria-label="Drag to resize the chat. Double-click to reset."
+        onDoubleClick={resetChatHeight}
+        onPointerCancel={endChatResize}
+        onPointerDown={startChatResize}
+        onPointerEnter={() => setHandleLit(true)}
+        onPointerLeave={() => setHandleLit(false)}
+        onPointerMove={moveChatResize}
+        onPointerUp={endChatResize}
+        role="separator"
+        style={{
+          cursor: "row-resize",
+          touchAction: "none",
+          padding: "5px 0",
+        }}
+        title="Drag to resize. Double-click to reset."
+      >
+        <div
+          style={{
+            height: 3,
+            borderRadius: 2,
+            background: handleLit ? "#3b82f6" : "rgba(59, 130, 246, 0.25)",
+            transition: "background 0.15s",
+          }}
+        />
       </div>
 
       {pendingImageUrl && (
