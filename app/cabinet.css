@@ -1,0 +1,219 @@
+:root {
+  --wood: #a9744a;
+  --wood-dark: #6f4529;
+  --wood-light: #c58d5e;
+  --wood-text: #2b1a0f;
+  --interior: #4b2f1e;
+  --glass: #f1e6d3;
+  --brass: #d9ad52;
+  --grain:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 13px);
+}
+
+html[data-mode="dark"] {
+  --wood: #6b4a33;
+  --wood-dark: #3a2616;
+  --wood-light: #85593b;
+  --wood-text: #f3e3cf;
+  --interior: #24160d;
+  --glass: #232b27;
+  --brass: #c79a45;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-mode="light"]) {
+    --wood: #6b4a33;
+    --wood-dark: #3a2616;
+    --wood-light: #85593b;
+    --wood-text: #f3e3cf;
+    --interior: #24160d;
+    --glass: #232b27;
+    --brass: #c79a45;
+  }
+}
+
+/* The room fills the window and the furniture stands on the rug */
+html body main.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-bottom: 54px;
+}
+
+html body main.app-shell .workspace {
+  flex: 1;
+}
+
+.study-chat {
+  padding-bottom: 1rem;
+}
+
+.shelf-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.shelf-panel > section {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.shelf-title {
+  margin-top: auto;
+}
+
+/* The cabinet */
+.cabinet {
+  margin-top: 0.6rem;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.28));
+}
+
+.cabinet-crown {
+  height: 14px;
+  margin: 0 -6px;
+  border: 2px solid var(--wood-dark);
+  border-bottom: 0;
+  border-radius: 5px 5px 0 0;
+  background: var(--grain), var(--wood-light);
+}
+
+.cabinet-body {
+  padding: 10px;
+  border: 2px solid var(--wood-dark);
+  background: var(--grain), var(--wood);
+}
+
+.cabinet-shelf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 6px;
+  min-height: 9rem;
+  padding: 10px 10px 0;
+  border: 3px solid var(--wood-dark);
+  border-bottom: 10px solid var(--wood-light);
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.3), transparent 35%),
+    var(--interior);
+  box-shadow: inset 0 8px 14px rgba(0, 0, 0, 0.45);
+}
+
+.cabinet-shelf .book-spine {
+  box-shadow: inset -3px 0 0 rgba(0, 0, 0, 0.22);
+}
+
+.cabinet-empty {
+  align-self: center;
+  margin: auto;
+  padding: 0 0.5rem 1rem;
+  color: #f3e3cf;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.cabinet-window {
+  position: relative;
+  margin-top: 8px;
+  border: 3px solid var(--wood-dark);
+  background: var(--glass);
+}
+
+.cabinet-glass {
+  max-height: 14rem;
+  padding: 8px 12px 12px;
+  overflow-y: auto;
+}
+
+.cabinet-glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.08) 26%,
+    transparent 28%,
+    transparent 64%,
+    rgba(255, 255, 255, 0.12) 66%,
+    transparent 74%
+  );
+}
+
+.cabinet-base {
+  padding: 8px 10px 10px;
+  border: 2px solid var(--wood-dark);
+  border-top: 6px solid var(--wood-light);
+  background: var(--grain), var(--wood);
+}
+
+.drawer {
+  margin-top: 8px;
+  border: 2px solid var(--wood-dark);
+  border-radius: 3px;
+  background: var(--grain), var(--wood-light);
+  box-shadow: inset 0 0 0 4px rgba(0, 0, 0, 0.07);
+}
+
+.drawer:first-child {
+  margin-top: 0;
+}
+
+.drawer > summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  color: var(--wood-text);
+  font: 600 0.9rem/1.2 Arial, sans-serif;
+  list-style: none;
+  cursor: pointer;
+}
+
+.drawer > summary::-webkit-details-marker {
+  display: none;
+}
+
+.drawer-knob {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff3c9, var(--brass) 55%, #8a6a2c);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.4);
+}
+
+.drawer-content {
+  border-top: 2px solid var(--wood-dark);
+  background: var(--glass);
+}
+
+.drawer-content > p {
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.drawer-item {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.drawer-item p {
+  margin-bottom: 0.4rem;
+}
+
+.cabinet-feet {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 18px;
+}
+
+.cabinet-feet span {
+  width: 24px;
+  height: 14px;
+  border-radius: 0 0 3px 3px;
+  background: var(--wood-dark);
+}
