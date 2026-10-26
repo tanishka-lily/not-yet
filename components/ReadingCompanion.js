@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import StudyChat from "./StudyChat.js";
 import Shelf from "./Shelf.js";
    import ThemeBar from "./ThemeBar.js";
+        import CatCorner from "./CatCorner.js";
 import { loadShelf, saveShelf, loadChat, saveChat, loadLayout, saveLayout } from "../lib/storage.js";
 
 const DEFAULT_SHELF_WIDTH = 320;
@@ -493,6 +494,7 @@ export default function ReadingCompanion() {
           />
         </aside>
       </div>
+                 <CatCorner busy={busyAction !== ""} count={messages.length} lastText={messages[messages.length - 1]?.text ?? ""} />
     </main>
   );
 }

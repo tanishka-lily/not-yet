@@ -1,0 +1,9 @@
+/* The cat moves by animation frames now, so the CSS transitions are switched off */
+.cat-actor,
+.cat-actor[data-phase] {
+  transition: none !important;
+}
+
+.cat-layer-back {
+  filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.25));
+}

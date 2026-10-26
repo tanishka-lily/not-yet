@@ -1,0 +1,301 @@
+/* Room for the cat's home on the left */
+@media (min-width: 1100px) {
+  .workspace {
+    padding-left: 300px;
+  }
+
+  html[data-cat="off"] .workspace {
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 1099px) {
+  .cat-home {
+    display: none;
+  }
+}
+
+/* The cat's home: stands on the rug and scrolls with the page */
+.cat-home {
+  position: absolute;
+  left: 12px;
+  bottom: 40px;
+  z-index: 3;
+  width: 280px;
+  height: 520px;
+  pointer-events: none;
+}
+
+.cat-home-off {
+  width: 130px;
+  height: 0;
+}
+
+.cat-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 280px;
+  height: 520px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.cat-layer-back { z-index: 1; }
+.cat-layer-front { z-index: 3; }
+
+.tree-post { fill: #a9784f; }
+.tree-plank { fill: #c79a6b; }
+.tree-house { fill: #d8b48a; }
+.tree-hole { fill: #3b2a22; }
+.tree-bed-back { fill: #b9684f; }
+.tree-bed { fill: #cf7f6a; }
+.tree-ball { fill: #e05a6d; }
+.toy-yarn { fill: #e05a6d; }
+.toy-mouse { fill: #b8b0a8; }
+
+.tree-rope,
+.tree-string,
+.toy-yarn-line,
+.toy-tail {
+  fill: none;
+  stroke: #8c6a48;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.tree-string { stroke-width: 1.5; }
+.toy-yarn-line { stroke: #b23a4e; stroke-width: 1.5; }
+.toy-tail { stroke: #b8b0a8; stroke-width: 2; }
+
+.tree-bed-line {
+  fill: none;
+  stroke: #f0cdb5;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.tree-toy {
+  transform-origin: 30px 112px;
+  animation: toy-swing 2.4s ease-in-out infinite alternate;
+}
+
+/* The cat */
+.cat-actor {
+  position: absolute;
+  z-index: 2;
+  width: 72px;
+  height: 68px;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+}
+
+.cat-actor[data-phase="drag"] {
+  cursor: grabbing;
+  filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.3));
+}
+
+.cat-actor[data-phase="fall"] {
+  transition: top 0.45s cubic-bezier(0.45, 0, 0.75, 1), left 0.3s ease-out;
+}
+
+.cat-actor[data-phase="hop"] {
+  transition: top 0.65s cubic-bezier(0.3, 1.4, 0.5, 1), left 0.65s ease-in-out;
+}
+
+.cat-actor[data-phase="walk"] {
+  transition: left 1.1s linear;
+}
+
+.cat-actor .mascot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.cat-actor img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.cat-flip {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.2s;
+}
+
+.cat-zzz {
+  position: absolute;
+  top: -8px;
+  right: -2px;
+  color: var(--muted);
+  font: 700 0.95rem Arial, sans-serif;
+  animation: cat-float 2.2s ease-in-out infinite;
+}
+
+.cat-toggle {
+  position: absolute;
+  left: 0;
+  top: -38px;
+  min-height: 2rem;
+  padding: 0.3rem 0.7rem;
+  background: var(--bg);
+  font-size: 0.75rem;
+  pointer-events: auto;
+}
+
+/* Cat drawing details */
+.cat-belly { fill: rgba(255, 255, 255, 0.35); }
+.cat-far { filter: brightness(0.85); }
+
+.cat-paw {
+  stroke: var(--cat-ink);
+  stroke-width: 1.5;
+}
+
+.cat-breathe {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: cat-breathe 3.4s ease-in-out infinite;
+}
+
+.cat-tail-sit {
+  transform-origin: 86px 100px;
+  animation: tail-sit 3s ease-in-out infinite alternate;
+}
+
+.cat-tail-sleep {
+  transform-origin: 100px 66px;
+  animation: tail-sleep 4s ease-in-out infinite alternate;
+}
+
+.cat-tail-walk {
+  transform-origin: 30px 56px;
+  animation: tail-walk 0.6s ease-in-out infinite alternate;
+}
+
+.cat-ears {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: ear-twitch 7s infinite;
+}
+
+.walk-bob {
+  animation: walk-bob 0.5s ease-in-out infinite alternate;
+}
+
+.leg-a,
+.leg-b {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: leg-swing 0.5s ease-in-out infinite alternate;
+}
+
+.leg-b {
+  animation-direction: alternate-reverse;
+}
+
+.cat-dangle {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: dangle 0.9s ease-in-out infinite alternate;
+}
+
+.cat-dangle-b {
+  animation-delay: 0.25s;
+}
+
+.mood-purr {
+  animation: purr-shake 0.12s linear infinite alternate;
+}
+
+@keyframes toy-swing {
+  from { transform: rotate(-9deg); }
+  to { transform: rotate(9deg); }
+}
+
+@keyframes cat-float {
+  0%, 100% { opacity: 0.2; transform: translateY(0); }
+  50% { opacity: 0.9; transform: translateY(-5px); }
+}
+
+@keyframes cat-breathe {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.04); }
+}
+
+@keyframes tail-sit {
+  from { transform: rotate(-5deg); }
+  to { transform: rotate(8deg); }
+}
+
+@keyframes tail-sleep {
+  from { transform: rotate(-3deg); }
+  to { transform: rotate(3deg); }
+}
+
+@keyframes tail-walk {
+  from { transform: rotate(-7deg); }
+  to { transform: rotate(7deg); }
+}
+
+@keyframes ear-twitch {
+  0%, 90%, 100% { transform: rotate(0deg); }
+  93% { transform: rotate(-5deg); }
+  96% { transform: rotate(4deg); }
+}
+
+@keyframes walk-bob {
+  from { transform: translateY(0); }
+  to { transform: translateY(-3px); }
+}
+
+@keyframes leg-swing {
+  from { transform: rotate(-24deg); }
+  to { transform: rotate(24deg); }
+}
+
+@keyframes dangle {
+  from { transform: rotate(-10deg); }
+  to { transform: rotate(10deg); }
+}
+
+@keyframes purr-shake {
+  from { transform: translateX(-0.6px); }
+  to { transform: translateX(0.6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tree-toy,
+  .cat-breathe,
+  .cat-tail-sit,
+  .cat-tail-sleep,
+  .cat-tail-walk,
+  .cat-ears,
+  .walk-bob,
+  .leg-a,
+  .leg-b,
+  .cat-dangle,
+  .mood-purr,
+  .cat-zzz {
+    animation: none !important;
+  }
+}
+/* Waddle: the cat tilts and bounces when it walks or hops. It works on your own drawings too. */
+.cat-actor[data-phase="walk"] .mascot,
+.cat-actor[data-phase="walk"] img,
+.cat-actor[data-phase="hop"] .mascot,
+.cat-actor[data-phase="hop"] img {
+  transform-origin: 50% 100%;
+  animation: waddle 0.38s ease-in-out infinite alternate;
+}
+
+@keyframes waddle {
+  from { transform: rotate(-7deg) translateY(0); }
+  to { transform: rotate(7deg) translateY(-5px); }
+}
